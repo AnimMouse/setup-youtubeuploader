@@ -1,0 +1,20 @@
+name: Test setup-youtubeuploader
+on:
+  push:
+    paths:
+      - action.yml
+      - scripts/**
+      - .github/workflows/test.yaml
+      
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup YouTube Uploader using setup-youtubeuploader
+        uses: AnimMouse/setup-youtubeuploader@main
+        with:
+          client_secrets: ${{ secrets.CLIENT_SECRETS }}
+          request_token: ${{ secrets.REQUEST_TOKEN }}
+          
+      - name: Test YouTube Uploader by checking version
+        run: youtubeuploader -version

@@ -1,0 +1,34 @@
+name: Setup YouTube Uploader
+description: Setup/Install YouTube Uploader for GitHub Actions
+branding:
+  icon: upload
+  color: red
+inputs:
+  client_secrets:
+    description: client_secrets.json file encoded in base64
+    required: true
+  request_token:
+    description: request.token file encoded in base64
+    required: true
+    
+runs:
+  using: composite
+  steps:
+    - name: Download YouTube Uploader for Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      working-directory: ${{ runner.temp }}
+      run: $GITHUB_ACTION_PATH/scripts/download/Linux.sh
+      
+    - name: Install YouTube Uploader on tool cache
+      uses: AnimMouse/tool-cache@v1
+      with:
+        folder_name: youtubeuploader
+        
+    - name: Sign in to YouTube Uploader on Unix-like
+      if: runner.os == 'Linux'
+      shell: bash
+      run: $GITHUB_ACTION_PATH/scripts/sign-in/Unix-like.sh
+      env:
+        client_secrets: ${{ inputs.client_secrets }}
+        request_token: ${{ inputs.request_token }}
