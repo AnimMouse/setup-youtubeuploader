@@ -5,8 +5,6 @@ This action installs [porjo/youtubeuploader](https://github.com/porjo/youtubeupl
 
 This action is implemented as a [composite](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) action.
 
-This action only supports Ubuntu virtual environments yet.
-
 ## Usage
 To use `youtubeuploader`, run this action before `youtubeuploader`.
 
