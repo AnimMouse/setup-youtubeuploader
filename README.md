@@ -23,3 +23,29 @@ steps:
       
   - run: youtubeuploader -secrets $RUNNER_TEMP/client_secrets.json -cache $RUNNER_TEMP/request.token -filename video.mkv
 ```
+
+### Specific version
+You can specify the version you want. By default, this action downloads the latest version.
+
+```yaml
+steps:
+  - name: Setup YouTube Uploader
+    uses: AnimMouse/setup-youtubeuploader@v1
+    with:
+      client_secrets: ${{ secrets.CLIENT_SECRETS }}
+      request_token: ${{ secrets.REQUEST_TOKEN }}
+      version: 22.04
+```
+
+### GitHub token
+This action automatically uses a GitHub token in order to authenticate with GitHub API and avoid rate limiting. You can also specify your own read-only fine-grained personal access token.
+
+```yaml
+steps:
+  - name: Setup YouTube Uploader
+    uses: AnimMouse/setup-youtubeuploader@v1
+    with:
+      client_secrets: ${{ secrets.CLIENT_SECRETS }}
+      request_token: ${{ secrets.REQUEST_TOKEN }}
+      token: ${{ secrets.GH_PAT }}
+```
