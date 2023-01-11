@@ -10,35 +10,57 @@ inputs:
   request_token:
     description: request.token file encoded in base64
     required: true
+  version:
+    description: YouTube Uploader version
+    default: latest
+  token:
+    description: GitHub token to avoid API rate limiting
+    default: ${{ github.token }}
     
 runs:
   using: composite
   steps:
-    - name: Download YouTube Uploader for Linux
-      if: runner.os == 'Linux'
+    - name: Get YouTube Uploader version for Unix-like
+      id: version-unix-like
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      shell: bash
+      run: $GITHUB_ACTION_PATH/scripts/version/Unix-like.sh
+      env:
+        version: ${{ inputs.version }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+        
+    - name: Get YouTube Uploader version for Windows
+      id: version-windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: '& $env:GITHUB_ACTION_PATH\scripts\version\Windows.ps1'
+      env:
+        version: ${{ inputs.version }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+        
+    - name: Download YouTube Uploader for Unix-like
+      if: runner.os == 'Linux' || runner.os == 'macOS'
       shell: bash
       working-directory: ${{ runner.temp }}
-      run: $GITHUB_ACTION_PATH/scripts/download/Linux.sh
-      
+      run: $GITHUB_ACTION_PATH/scripts/download/Unix-like.sh
+      env:
+        version: ${{ steps.version-unix-like.outputs.version }}
+        
     - name: Download YouTube Uploader for Windows
       if: runner.os == 'Windows'
       shell: pwsh
       working-directory: ${{ runner.temp }}
       run: '& $env:GITHUB_ACTION_PATH\scripts\download\Windows.ps1'
-      
-    - name: Download YouTube Uploader for macOS
-      if: runner.os == 'macOS'
-      shell: bash
-      working-directory: ${{ runner.temp }}
-      run: $GITHUB_ACTION_PATH/scripts/download/macOS.sh
-      
+      env:
+        version: ${{ steps.version-windows.outputs.version }}
+        
     - name: Install YouTube Uploader on tool cache
       uses: AnimMouse/tool-cache@v1
       with:
         folder_name: youtubeuploader
         
     - name: Sign in to YouTube Uploader on Unix-like
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' || runner.os == 'macOS'
       shell: bash
       run: $GITHUB_ACTION_PATH/scripts/sign-in/Unix-like.sh
       env:

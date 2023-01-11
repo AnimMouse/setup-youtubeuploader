@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        version: [latest, 22.04]
         
     steps:
       - name: Setup YouTube Uploader using setup-youtubeuploader
@@ -20,6 +21,7 @@ jobs:
         with:
           client_secrets: ${{ secrets.CLIENT_SECRETS }}
           request_token: ${{ secrets.REQUEST_TOKEN }}
+          version: ${{ matrix.version }}
           
       - name: Test YouTube Uploader by checking version
         run: youtubeuploader -version
