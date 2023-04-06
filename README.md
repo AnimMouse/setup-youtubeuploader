@@ -24,6 +24,20 @@ steps:
   - run: youtubeuploader -secrets $RUNNER_TEMP/client_secrets.json -cache $RUNNER_TEMP/request.token -filename video.mkv
 ```
 
+### Process substitution
+You can also use process substitution for passing credentials so that the credentials will not be placed in `$RUNNER_TEMP`. Only applies on Ubuntu and macOS.
+
+```yaml
+steps:
+  - name: Setup YouTube Uploader
+    uses: AnimMouse/setup-youtubeuploader@v1
+    
+  - run: youtubeuploader -secrets <(echo "$client_secrets" | base64 -d) -cache <(echo "$request_token" | base64 -d) -filename video.mkv
+    env:
+      client_secrets: ${{ secrets.CLIENT_SECRETS }}
+      request_token: ${{ secrets.REQUEST_TOKEN }}
+```
+
 ### Specific version
 You can specify the version you want. By default, this action downloads the latest version.
 

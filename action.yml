@@ -5,11 +5,11 @@ branding:
   color: red
 inputs:
   client_secrets:
-    description: client_secrets.json file encoded in base64
-    required: true
+    description: client_secrets.json file encoded in Base64
+    default: false
   request_token:
-    description: request.token file encoded in base64
-    required: true
+    description: request.token file encoded in Base64
+    default: false
   version:
     description: YouTube Uploader version
     default: latest
@@ -60,7 +60,7 @@ runs:
         folder_name: youtubeuploader
         
     - name: Sign in to YouTube Uploader on Unix-like
-      if: runner.os == 'Linux' || runner.os == 'macOS'
+      if: (runner.os == 'Linux' || runner.os == 'macOS') && (inputs.client_secrets != 'false' && inputs.request_token != 'false')
       shell: bash
       run: $GITHUB_ACTION_PATH/scripts/sign-in/Unix-like.sh
       env:
@@ -68,7 +68,7 @@ runs:
         request_token: ${{ inputs.request_token }}
         
     - name: Sign in to YouTube Uploader on Windows
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && (inputs.client_secrets != 'false' && inputs.request_token != 'false')
       shell: pwsh
       run: '& $env:GITHUB_ACTION_PATH\scripts\sign-in\Windows.ps1'
       env:
