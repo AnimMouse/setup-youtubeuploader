@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        version: [latest, 22.04]
+        version: [latest, "${{ vars.SPECIFIED_VERSION }}"]
         
     steps:
       - name: Setup YouTube Uploader using setup-youtubeuploader
@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        version: [latest, 22.04]
+        version: [latest, "${{ vars.SPECIFIED_VERSION }}"]
         
     steps:
       - name: Setup YouTube Uploader using setup-youtubeuploader
