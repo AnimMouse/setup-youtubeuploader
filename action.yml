@@ -38,8 +38,15 @@ runs:
         version: ${{ inputs.version }}
         GITHUB_TOKEN: ${{ inputs.token }}
         
+    - name: Restore YouTube Uploader cache
+      id: cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ runner.tool_cache }}/youtubeuploader
+        key: youtubeuploader-${{ steps.version-unix-like.outputs.version || steps.version-windows.outputs.version }}-${{ runner.os }}
+        
     - name: Download YouTube Uploader for Unix-like
-      if: runner.os == 'Linux' || runner.os == 'macOS'
+      if: (runner.os == 'Linux' || runner.os == 'macOS') && ! steps.cache.outputs.cache-hit
       shell: bash
       working-directory: ${{ runner.temp }}
       run: $GITHUB_ACTION_PATH/scripts/download/Unix-like.sh
@@ -47,7 +54,7 @@ runs:
         version: ${{ steps.version-unix-like.outputs.version }}
         
     - name: Download YouTube Uploader for Windows
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && ! steps.cache.outputs.cache-hit
       shell: pwsh
       working-directory: ${{ runner.temp }}
       run: '& $env:GITHUB_ACTION_PATH\scripts\download\Windows.ps1'
@@ -58,6 +65,7 @@ runs:
       uses: AnimMouse/tool-cache@v1
       with:
         folder_name: youtubeuploader
+        cache_hit: ${{ steps.cache.outputs.cache-hit }}
         
     - name: Sign in to YouTube Uploader on Unix-like
       if: (runner.os == 'Linux' || runner.os == 'macOS') && (inputs.client_secrets != 'false' && inputs.request_token != 'false')
@@ -74,3 +82,10 @@ runs:
       env:
         client_secrets: ${{ inputs.client_secrets }}
         request_token: ${{ inputs.request_token }}
+        
+    - name: Save YouTube Uploader cache
+      if: '! steps.cache.outputs.cache-hit'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ runner.tool_cache }}/youtubeuploader
+        key: youtubeuploader-${{ steps.version-unix-like.outputs.version || steps.version-windows.outputs.version }}-${{ runner.os }}
