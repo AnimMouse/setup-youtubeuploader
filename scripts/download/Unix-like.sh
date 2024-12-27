@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -eu
 echo ::group::Downloading youtubeuploader $version for $RUNNER_OS
 if [ $RUNNER_OS = macOS ]; then os=Darwin; else os=Linux; fi
