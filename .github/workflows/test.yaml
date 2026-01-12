@@ -1,44 +1,57 @@
 name: Test setup-youtubeuploader
 on:
   push:
+    branches:
+      - main
     paths:
-      - action.yml
+      - action.yaml
       - scripts/**
       - .github/workflows/test.yaml
-      
+  schedule:
+    - cron: '7 11 1 * *'
+  workflow_dispatch:
+  
 jobs:
-  test-with-credentials:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        version: [latest, "${{ vars.SPECIFIED_VERSION }}"]
+        version: [latest, specified]
+        credentials: [credentials, no-credentials]
         
     steps:
-      - name: Setup YouTube Uploader using setup-youtubeuploader
+      - name: Get youtubeuploader penultimate version on Unix-like
+        id: penultimate-unix-like
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.version == 'specified'
+        run: echo version=$(gh api repos/porjo/youtubeuploader/releases -q .[1].tag_name) >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          
+      - name: Get youtubeuploader penultimate version on Windows
+        id: penultimate-windows
+        if: runner.os == 'Windows' && matrix.version == 'specified'
+        run: |
+          $version = (gh api repos/porjo/youtubeuploader/releases -q .[1].tag_name)
+          Add-Content $env:GITHUB_OUTPUT version=$version
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          
+      - name: Setup youtubeuploader using setup-youtubeuploader
         uses: AnimMouse/setup-youtubeuploader@main
         with:
-          client_secrets: ${{ secrets.CLIENT_SECRETS }}
-          request_token: ${{ secrets.REQUEST_TOKEN }}
-          version: ${{ matrix.version }}
+          client_secrets: ${{ matrix.credentials == 'credentials' && secrets.CLIENT_SECRETS || '' }}
+          request_token: ${{ matrix.credentials == 'credentials' && secrets.REQUEST_TOKEN || '' }}
+          version: ${{ matrix.version == 'specified' && (steps.penultimate-unix-like.outputs.version || steps.penultimate-windows.outputs.version) || matrix.version }}
           
-      - name: Test YouTube Uploader by checking version
+      - name: Test youtubeuploader by checking version
         run: youtubeuploader -version
         
-  test-without-credentials:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        version: [latest, "${{ vars.SPECIFIED_VERSION }}"]
+      - name: Check if credentials are installed on Unix-like
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.credentials == 'credentials'
+        run: '[[ -f ~/.config/youtubeuploader/client_secrets.json && -f ~/.config/youtubeuploader/request.token ]] && exit 0 || exit 1'
         
-    steps:
-      - name: Setup YouTube Uploader using setup-youtubeuploader
-        uses: AnimMouse/setup-youtubeuploader@main
-        with:
-          version: ${{ matrix.version }}
-          
-      - name: Test YouTube Uploader by checking version
-        run: youtubeuploader -version
+      - name: Check if credentials are installed on Windows
+        if: runner.os == 'Windows' && matrix.credentials == 'credentials'
+        run: if ((Test-Path "$env:APPDATA\youtubeuploader\client_secrets.json") -and (Test-Path "$env:APPDATA\youtubeuploader\request.token")) { exit 0 } else { exit 1 }
